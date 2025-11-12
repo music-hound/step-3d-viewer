@@ -1,0 +1,112 @@
+.viewer {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  border-radius: 0;
+  border: none;
+  background: radial-gradient(150% 120% at 70% 0%, #202742 0%, #0c0f1d 55%, #05060a 100%);
+  overflow: hidden;
+}
+
+.viewer--active {
+  box-shadow: inset 0 0 0 3px rgba(70, 148, 255, 0.35);
+}
+
+.viewer__canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.viewer__placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  pointer-events: none;
+  font-size: 1.05rem;
+  color: rgba(255, 255, 255, 0.85);
+  text-align: center;
+  padding: 0 clamp(1.5rem, 8vw, 6rem);
+}
+
+.viewer__placeholder .muted {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.viewer__drop-hint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(11, 99, 255, 0.12);
+  border: 2px dashed rgba(112, 166, 255, 0.6);
+  color: #bcd8ff;
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.viewer__loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  background: rgba(5, 6, 10, 0.7);
+  backdrop-filter: blur(6px);
+  color: #f6f8ff;
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  z-index: 3;
+}
+
+.viewer__loading-spinner {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 4px solid rgba(130, 152, 255, 0.4);
+  border-top-color: #6ed0ff;
+  animation: spin 0.9s linear infinite;
+}
+
+.panel-toggle {
+  position: fixed;
+  top: clamp(1rem, 2vw, 2.5rem);
+  left: clamp(1rem, 3vw, 3.5rem);
+  z-index: 5;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(9, 12, 26, 0.8);
+  color: #f2f4ff;
+  padding: 0.5rem 1.1rem;
+  border-radius: 999px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(14px);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+@media (max-width: 768px) {
+  .viewer {
+    min-height: 100vh;
+  }
+
+  .panel-toggle {
+    left: 1rem;
+    top: 1rem;
+  }
+}
