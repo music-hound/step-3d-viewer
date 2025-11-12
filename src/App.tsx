@@ -1,18 +1,21 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, type MouseEvent } from 'react'
 import { useStepViewer } from './hooks/useStepViewer'
 import { ViewerSurface } from './components/ViewerSurface'
 import { ControlPanel } from './components/ControlPanel'
+import { ContextMenu } from './components/ContextMenu'
 import { sampleModels } from './data/sampleModels'
 import './styles/animations.css'
 import './styles/base.css'
 import './styles/sample-library.css'
 import './styles/viewer.css'
 import './styles/control-panel.css'
+import './styles/context-menu.css'
 
 function App() {
   const viewer = useStepViewer()
   const [isPanelOpen, setIsPanelOpen] = useState(false)
   const [isMobileLayout, setIsMobileLayout] = useState(false)
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width: 768px)')
@@ -62,6 +65,43 @@ function App() {
 
   const panelId = 'control-panel'
 
+  const handleViewerContextMenu = useCallback(
+    (event: MouseEvent<HTMLElement>) => {
+      event.preventDefault()
+      event.stopPropagation()
+      if (!viewer.selectedMeshName) {
+        setContextMenu(null)
+        return
+      }
+      setContextMenu({ x: event.clientX, y: event.clientY })
+    },
+    [viewer.selectedMeshName],
+  )
+
+  useEffect(() => {
+    if (!contextMenu) {
+      return
+    }
+    const handleClose = () => setContextMenu(null)
+    window.addEventListener('click', handleClose)
+    window.addEventListener('resize', handleClose)
+    return () => {
+      window.removeEventListener('click', handleClose)
+      window.removeEventListener('resize', handleClose)
+    }
+  }, [contextMenu])
+
+  useEffect(() => {
+    if (!viewer.selectedMeshName) {
+      setContextMenu(null)
+    }
+  }, [viewer.selectedMeshName])
+
+  const handleExtinguishSelection = () => {
+    viewer.extinguishSelection()
+    setContextMenu(null)
+  }
+
   return (
     <div className="app" data-panel-open={isPanelOpen} data-mobile-layout={isMobileLayout}>
       <ViewerSurface
@@ -71,6 +111,7 @@ function App() {
         isLoading={viewer.isLoading}
         isPanelOpen={isPanelOpen}
         panelId={panelId}
+        onContextMenu={handleViewerContextMenu}
         onDragEnter={viewer.handleDragEnter}
         onDragLeave={viewer.handleDragLeave}
         onDragOver={viewer.handleDragOver}
@@ -93,6 +134,13 @@ function App() {
           samples={sampleModels}
           onSampleSelect={(sample) => viewer.loadSample(sample.url, sample.label, sample.fileName)}
         />
+        {contextMenu && (
+          <ContextMenu
+            x={contextMenu.x}
+            y={contextMenu.y}
+            onExtinguish={handleExtinguishSelection}
+          />
+        )}
       </ViewerSurface>
     </div>
   )

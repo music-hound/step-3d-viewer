@@ -132,13 +132,14 @@ export function useStepViewer() {
       raycasterRef.current.setFromCamera(pointerVector.current, cameraRef.current)
       const objects = modelGroupRef.current.children
       const intersects = raycasterRef.current.intersectObjects(objects, true)
-      if (intersects.length > 0) {
-        const intersectObject = intersects[0].object
-        if (intersectObject instanceof THREE.Mesh) {
-          selectMesh(intersectObject)
-        } else {
-          selectMesh(null)
-        }
+      const firstValid = intersects.find(
+        (hit) =>
+          hit.object instanceof THREE.Mesh &&
+          hit.object.visible &&
+          !hit.object.userData?.extinguished,
+      )
+      if (firstValid) {
+        selectMesh(firstValid.object as THREE.Mesh)
       } else {
         selectMesh(null)
       }
@@ -321,6 +322,17 @@ export function useStepViewer() {
     return true
   }, [])
 
+  const extinguishSelection = useCallback(() => {
+    const mesh = selectedMeshRef.current
+    if (!mesh) {
+      return false
+    }
+    mesh.visible = false
+    mesh.userData.extinguished = true
+    selectMesh(null)
+    return true
+  }, [selectMesh])
+
   const loadFromBuffer = useCallback(
     async (buffer: ArrayBuffer, label: string) => {
       setIsLoading(true)
@@ -447,5 +459,6 @@ export function useStepViewer() {
     selectedMeshName,
     applyColorToSelection,
     resetSelectionColor,
+    extinguishSelection,
   }
 }

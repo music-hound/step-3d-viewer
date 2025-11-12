@@ -1,4 +1,9 @@
-import type { DragEventHandler, MutableRefObject, ReactNode } from 'react'
+import type {
+  DragEventHandler,
+  MouseEventHandler,
+  MutableRefObject,
+  ReactNode,
+} from 'react'
 
 interface ViewerSurfaceProps {
   canvasRef: MutableRefObject<HTMLDivElement | null>
@@ -7,6 +12,7 @@ interface ViewerSurfaceProps {
   isLoading: boolean
   isPanelOpen: boolean
   panelId: string
+  onContextMenu: MouseEventHandler<HTMLElement>
   onDragEnter: DragEventHandler<HTMLDivElement>
   onDragLeave: DragEventHandler<HTMLDivElement>
   onDragOver: DragEventHandler<HTMLDivElement>
@@ -22,6 +28,7 @@ export function ViewerSurface({
   isLoading,
   isPanelOpen,
   panelId,
+  onContextMenu,
   onDragEnter,
   onDragLeave,
   onDragOver,
@@ -32,6 +39,7 @@ export function ViewerSurface({
   return (
     <section
       className={`viewer ${isDragActive ? 'viewer--active' : ''}`}
+      onContextMenu={onContextMenu}
       onDragEnter={onDragEnter}
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
