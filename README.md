@@ -1,73 +1,73 @@
-# React + TypeScript + Vite
+# STEP 3D Viewer
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Интерактивный 3D‑просмотрщик STEP/STP файлов в браузере. Приложение использует WebAssembly‑порт OpenCascade (occt-import-js) и three.js, поэтому модели можно просматривать без бэкенда: достаточно перетащить файл в окно или выбрать его через панель управления.
 
-Currently, two official plugins are available:
+![Demo](public/fav.png)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Возможности
 
-## React Compiler
+- 🔁 Drag & drop или загрузка STEP/STP файла из панели.
+- 📚 Библиотека примеров — любые файлы из `public/models` появляются в интерфейсе автоматически.
+- 🎨 Выделение и перекрашивание выбранных мешей.
+- 🌓 WebGL‑рендеринг на three.js с приятной тёмной темой.
+- ⚙️ Сборка на Vite + React + TypeScript; готовый скрипт деплоя на GitHub Pages.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Быстрый старт
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+git clone https://github.com/<you>/step-3D-viewer.git
+cd step-3D-viewer
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+После запуска dev-сервера откройте `http://localhost:5173` — панель управления скрыта на десктопе, откройте её кнопкой «Меню».
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Добавление собственных моделей
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+1. Поместите `.stp` или `.step` файл в `public/models`.
+2. В режиме разработки библиотека примеров обновится автоматически (мы отслеживаем каталог через Vite-плагин).
+3. Для продакшн-сборки новые файлы нужно залить в репозиторий до запуска `npm run build` или `npm run deploy`.
+
+## Скрипты
+
+| Команда | Описание |
+| --- | --- |
+| `npm run dev` | Development-сервер Vite с HMR |
+| `npm run build` | Тайпчек + production-бандл |
+| `npm run build:gh` | Сборка с базовым путём `/step-3D-viewer/` для GitHub Pages |
+| `npm run preview` | Локальный предпросмотр прод-бандла |
+| `npm run deploy` | `build:gh` + публикация `dist` в ветку `gh-pages` |
+
+Перед деплоем убедитесь, что настроен remote и есть доступ к ветке `gh-pages`:
+
+```bash
+git remote add origin git@github.com:<you>/step-3D-viewer.git
+npm run deploy
 ```
+
+## Структура проекта
+
+```
+src/
+ ├─ components/      # ControlPanel, SampleLibrary, ViewerSurface и т.д.
+ ├─ data/            # sampleModels.ts — список моделей из public/models
+ ├─ hooks/           # кастомные хуки (useStepViewer)
+ ├─ styles/          # модульные CSS-файлы (база, viewer, панель, библиотека)
+ └─ main.tsx         # точка входа React
+public/
+ ├─ models/          # ваши .stp/.step файлы
+ └─ fav.png          # favicon и промо иконка
+```
+
+## Технологии
+
+- React 19 + TypeScript
+- Vite 7
+- three.js
+- occt-import-js (OpenCascade в WebAssembly)
+- ESLint (Flat config), TypeScript paths, Vite plugin для авто-манипуляции `public/models`
+
+## Лицензия
+
+MIT — используйте, форкайте, улучшайте. Pull request’ы приветствуются! Если найдёте ошибку или хотите предложить фичу, создайте Issue. 😄
