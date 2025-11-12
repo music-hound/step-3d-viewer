@@ -1,19 +1,17 @@
 # STEP 3D Viewer
 
-Интерактивный 3D‑просмотрщик STEP/STP файлов в браузере. Приложение использует WebAssembly‑порт OpenCascade (occt-import-js) и three.js, поэтому модели можно просматривать без бэкенда: достаточно перетащить файл в окно или выбрать его через панель управления.
+Interactive STEP/STP viewer that runs entirely in the browser. The app uses the WebAssembly build of OpenCascade (`occt-import-js`) together with three.js, so you can inspect CAD models without any backend: drag & drop a file or pick one from the control panel.
 
-![Demo](public/fav.png)
+## Features
 
-## Возможности
+- 🔁 Drag & drop or upload STEP/STP files through the panel.
+- 📚 Sample library — any `.stp/.step` file you place in `public/models` appears instantly in the UI.
+- 🎨 Select meshes and recolor them on the fly.
+- 🌓 WebGL rendering on top of three.js with a sleek dark theme.
+- 📱 PWA-ready: install it on a phone home screen or pin it on desktop.
+- ⚙️ Vite + React + TypeScript stack with a one-command GitHub Pages deploy.
 
-- 🔁 Drag & drop или загрузка STEP/STP файла из панели.
-- 📚 Библиотека примеров — любые файлы из `public/models` появляются в интерфейсе автоматически.
-- 🎨 Выделение и перекрашивание выбранных мешей.
-- 🌓 WebGL‑рендеринг на three.js с приятной тёмной темой.
-- 📱 PWA: можно установить приложение на домашний экран телефона или закрепить на рабочем столе ПК.
-- ⚙️ Сборка на Vite + React + TypeScript; готовый скрипт деплоя на GitHub Pages.
-
-## Быстрый старт
+## Getting Started
 
 ```bash
 git clone https://github.com/<you>/step-3D-viewer.git
@@ -22,53 +20,53 @@ npm install
 npm run dev
 ```
 
-После запуска dev-сервера откройте `http://localhost:5173` — панель управления скрыта на десктопе, откройте её кнопкой «Меню».
+Open `http://localhost:5173` — on desktop the control panel is hidden by default, click the “Меню” button to reveal it.
 
-## Добавление собственных моделей
+## Adding Your Own Models
 
-1. Поместите `.stp` или `.step` файл в `public/models`.
-2. В режиме разработки библиотека примеров обновится автоматически (мы отслеживаем каталог через Vite-плагин).
-3. Для продакшн-сборки новые файлы нужно залить в репозиторий до запуска `npm run build` или `npm run deploy`.
+1. Drop `.stp` or `.step` files into `public/models`.
+2. During development the sample library updates automatically (we watch the folder via a Vite plugin).
+3. For production builds make sure the files are in the repo before running `npm run build` or `npm run deploy`.
 
-## Скрипты
+## Scripts
 
-| Команда | Описание |
+| Command | Description |
 | --- | --- |
-| `npm run dev` | Development-сервер Vite с HMR |
-| `npm run build` | Тайпчек + production-бандл |
-| `npm run build:gh` | Сборка с базовым путём `/step-3D-viewer/` для GitHub Pages |
-| `npm run preview` | Локальный предпросмотр прод-бандла |
-| `npm run deploy` | `build:gh` + публикация `dist` в ветку `gh-pages` |
+| `npm run dev` | Vite dev server with HMR |
+| `npm run build` | Type-check + production bundle |
+| `npm run build:gh` | Build with `/step-3d-viewer/` base path for GitHub Pages |
+| `npm run preview` | Preview the production bundle locally |
+| `npm run deploy` | `build:gh` + publish `dist` to the `gh-pages` branch |
 
-Перед деплоем убедитесь, что настроен remote и есть доступ к ветке `gh-pages`:
+Before deploying make sure the remote is configured and you have access to `gh-pages`:
 
 ```bash
-git remote add origin git@github.com:<you>/step-3D-viewer.git
+git remote add origin git@github.com:<you>/step-3d-viewer.git
 npm run deploy
 ```
 
-## Структура проекта
+## Project Structure
 
 ```
 src/
- ├─ components/      # ControlPanel, SampleLibrary, ViewerSurface и т.д.
- ├─ data/            # sampleModels.ts — список моделей из public/models
- ├─ hooks/           # кастомные хуки (useStepViewer)
- ├─ styles/          # модульные CSS-файлы (база, viewer, панель, библиотека)
- └─ main.tsx         # точка входа React
+ ├─ components/      # ControlPanel, SampleLibrary, ViewerSurface, etc.
+ ├─ data/            # sampleModels.ts — sample list sourced from public/models
+ ├─ hooks/           # custom hooks (useStepViewer)
+ ├─ styles/          # modular CSS (base, viewer, panel, library)
+ └─ main.tsx         # React entry point
 public/
- ├─ models/          # ваши .stp/.step файлы
- └─ fav.png          # favicon и промо иконка
+ ├─ models/          # your .stp/.step files
+ └─ fav.png          # favicon / icon
 ```
 
-## Технологии
+## Tech Stack
 
 - React 19 + TypeScript
 - Vite 7
 - three.js
-- occt-import-js (OpenCascade в WebAssembly)
-- ESLint (Flat config), TypeScript paths, Vite plugin для авто-манипуляции `public/models`
+- occt-import-js (OpenCascade via WebAssembly)
+- ESLint (flat config), TypeScript path aliases, custom Vite plugin for the sample library
 
-## Лицензия
+## License
 
-MIT — используйте, форкайте, улучшайте. Pull request’ы приветствуются! Если найдёте ошибку или хотите предложить фичу, создайте Issue. 😄
+MIT — feel free to fork, use, and improve. Pull requests are welcome! If you spot a bug or want to suggest a feature, open an issue. 😄
