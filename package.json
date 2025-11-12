@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "build:gh": "tsc -b && vite build --base=/step-3D-viewer/",
+    "build:gh": "tsc -b && vite build --base=/step-3d-viewer/",
     "lint": "eslint .",
     "preview": "vite preview",
     "deploy": "npm run build:gh && gh-pages -d dist"
