@@ -24,11 +24,11 @@ export function useStepViewer() {
   const animationHandle = useRef<number | null>(null)
   const dragDepth = useRef(0)
   const modelGroupRef = useRef<THREE.Group | null>(null)
-  const gridRef = useRef<THREE.GridHelper | null>(null)
-  const defaultGridY = -0.0001
   const raycasterRef = useRef(new THREE.Raycaster())
   const pointerVector = useRef(new THREE.Vector2())
   const selectedMeshRef = useRef<THREE.Mesh | null>(null)
+  const gridRef = useRef<THREE.GridHelper | null>(null)
+  const defaultGridY = -0.0001
 
   const [status, setStatus] = useState(INIT_MESSAGE)
   const [error, setError] = useState<string | null>(null)
@@ -63,6 +63,36 @@ export function useStepViewer() {
       setSelectedMeshName(null)
     }
   }, [setSelectionColor])
+
+  const findMeshAtScreenPosition = useCallback((clientX: number, clientY: number) => {
+    const renderer = rendererRef.current
+    const camera = cameraRef.current
+    const modelGroup = modelGroupRef.current
+    if (!renderer || !camera || !modelGroup) {
+      return null
+    }
+    const rect = renderer.domElement.getBoundingClientRect()
+    pointerVector.current.x = ((clientX - rect.left) / rect.width) * 2 - 1
+    pointerVector.current.y = -((clientY - rect.top) / rect.height) * 2 + 1
+    raycasterRef.current.setFromCamera(pointerVector.current, camera)
+    const intersects = raycasterRef.current.intersectObjects(modelGroup.children, true)
+    const firstValid = intersects.find(
+      (hit) =>
+        hit.object instanceof THREE.Mesh &&
+        hit.object.visible &&
+        !hit.object.userData?.extinguished,
+    )
+    return firstValid ? (firstValid.object as THREE.Mesh) : null
+  }, [])
+
+  const selectMeshAtScreenPosition = useCallback(
+    (clientX: number, clientY: number) => {
+      const mesh = findMeshAtScreenPosition(clientX, clientY)
+      selectMesh(mesh)
+      return Boolean(mesh)
+    },
+    [findMeshAtScreenPosition, selectMesh],
+  )
 
   useEffect(() => {
     let mounted = true
@@ -113,8 +143,15 @@ export function useStepViewer() {
     fillLight.position.set(-4, -6, -5)
     scene.add(ambientLight, keyLight, fillLight)
 
-    const grid = new THREE.GridHelper(20, 20, 0x2f3542, 0x1c1f29)
+    const grid = new THREE.GridHelper(60, 60, 0x2f3542, 0x1c1f29)
     grid.position.y = defaultGridY
+    const gridMaterials = Array.isArray(grid.material) ? grid.material : [grid.material]
+    gridMaterials.forEach((material) => {
+      material.transparent = true
+      material.opacity = 0.4
+      material.depthWrite = false
+    })
+    grid.visible = true
     gridRef.current = grid
     scene.add(grid)
 
@@ -122,27 +159,11 @@ export function useStepViewer() {
     mount.appendChild(renderer.domElement)
 
     const handlePointerDown = (event: PointerEvent) => {
-      if (!cameraRef.current || !modelGroupRef.current) {
-        selectMesh(null)
+      if (event.button === 2) {
         return
       }
-      const rect = renderer.domElement.getBoundingClientRect()
-      pointerVector.current.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
-      pointerVector.current.y = -((event.clientY - rect.top) / rect.height) * 2 + 1
-      raycasterRef.current.setFromCamera(pointerVector.current, cameraRef.current)
-      const objects = modelGroupRef.current.children
-      const intersects = raycasterRef.current.intersectObjects(objects, true)
-      const firstValid = intersects.find(
-        (hit) =>
-          hit.object instanceof THREE.Mesh &&
-          hit.object.visible &&
-          !hit.object.userData?.extinguished,
-      )
-      if (firstValid) {
-        selectMesh(firstValid.object as THREE.Mesh)
-      } else {
-        selectMesh(null)
-      }
+      const mesh = findMeshAtScreenPosition(event.clientX, event.clientY)
+      selectMesh(mesh)
     }
 
     const resizeRenderer = () => {
@@ -176,11 +197,15 @@ export function useStepViewer() {
       }
       controls.dispose()
       renderer.dispose()
+      if (gridRef.current && sceneRef.current?.children.includes(gridRef.current)) {
+        sceneRef.current.remove(gridRef.current)
+      }
+      gridRef.current = null
       if (mount.contains(renderer.domElement)) {
         mount.removeChild(renderer.domElement)
       }
     }
-  }, [selectMesh])
+  }, [selectMesh, findMeshAtScreenPosition])
 
   const disposeCurrentModel = useCallback(() => {
     if (!sceneRef.current || !modelGroupRef.current) {
@@ -199,6 +224,7 @@ export function useStepViewer() {
     })
     modelGroupRef.current = null
     if (gridRef.current) {
+      gridRef.current.visible = true
       gridRef.current.position.y = defaultGridY
     }
     selectMesh(null)
@@ -287,13 +313,10 @@ export function useStepViewer() {
       modelGroupRef.current = group
       setHasModel(true)
       fitCameraToGroup(group)
-
-      const boundingBox = new THREE.Box3().setFromObject(group)
-      const floorY = boundingBox.min.y - 0.002
       if (gridRef.current) {
-        gridRef.current.position.y = Number.isFinite(floorY) ? floorY : defaultGridY
-        gridRef.current.visible = true
+        gridRef.current.visible = false
       }
+
       selectMesh(null)
     },
     [disposeCurrentModel, fitCameraToGroup, selectMesh],
@@ -309,6 +332,18 @@ export function useStepViewer() {
     mesh.userData.paintColorHex = selectionColor
     return true
   }, [selectionColor])
+
+  const applyColorToSelectionWithValue = useCallback((hexColor: string) => {
+    const mesh = selectedMeshRef.current
+    if (!mesh || !(mesh.material instanceof THREE.MeshStandardMaterial)) {
+      return false
+    }
+    mesh.material.color.set(hexColor)
+    mesh.material.needsUpdate = true
+    mesh.userData.paintColorHex = hexColor
+    setSelectionColor(hexColor)
+    return true
+  }, [])
 
   const resetSelectionColor = useCallback(() => {
     const mesh = selectedMeshRef.current
@@ -353,6 +388,10 @@ export function useStepViewer() {
       } catch (loadError) {
         console.error(loadError)
         setHasModel(false)
+        if (gridRef.current) {
+          gridRef.current.visible = true
+          gridRef.current.position.y = defaultGridY
+        }
         const message =
           loadError instanceof Error
             ? loadError.message
@@ -458,7 +497,9 @@ export function useStepViewer() {
     setSelectionColor,
     selectedMeshName,
     applyColorToSelection,
+    applyColorToSelectionWithValue,
     resetSelectionColor,
     extinguishSelection,
+    selectMeshAtScreenPosition,
   }
 }

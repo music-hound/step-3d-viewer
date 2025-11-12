@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useMemo, useState, type MouseEvent } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type MouseEvent,
+  type TouchEvent,
+} from 'react'
 import { useStepViewer } from './hooks/useStepViewer'
 import { ViewerSurface } from './components/ViewerSurface'
 import { ControlPanel } from './components/ControlPanel'
@@ -13,9 +21,12 @@ import './styles/context-menu.css'
 
 function App() {
   const viewer = useStepViewer()
+  const { selectMeshAtScreenPosition, selectedMeshName } = viewer
   const [isPanelOpen, setIsPanelOpen] = useState(false)
   const [isMobileLayout, setIsMobileLayout] = useState(false)
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
+  const touchTimerRef = useRef<number | null>(null)
+  const touchPointRef = useRef<{ x: number; y: number } | null>(null)
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width: 768px)')
@@ -65,37 +76,106 @@ function App() {
 
   const panelId = 'control-panel'
 
+  const clearTouchTimer = useCallback(() => {
+    if (touchTimerRef.current !== null) {
+      window.clearTimeout(touchTimerRef.current)
+      touchTimerRef.current = null
+    }
+  }, [])
+
+  const openContextMenuAt = useCallback(
+    (clientX: number, clientY: number) => {
+      const hasMesh = selectMeshAtScreenPosition(clientX, clientY)
+      if (!hasMesh && !selectedMeshName) {
+        setContextMenu(null)
+        return false
+      }
+      setContextMenu({ x: clientX, y: clientY })
+      return true
+    },
+    [selectMeshAtScreenPosition, selectedMeshName],
+  )
+
   const handleViewerContextMenu = useCallback(
     (event: MouseEvent<HTMLElement>) => {
       event.preventDefault()
       event.stopPropagation()
-      if (!viewer.selectedMeshName) {
-        setContextMenu(null)
+      openContextMenuAt(event.clientX, event.clientY)
+    },
+    [openContextMenuAt],
+  )
+
+  const handleViewerTouchStart = useCallback(
+    (event: TouchEvent<HTMLElement>) => {
+      if (event.touches.length !== 1) {
+        clearTouchTimer()
         return
       }
-      setContextMenu({ x: event.clientX, y: event.clientY })
+      const touch = event.touches[0]
+      touchPointRef.current = { x: touch.clientX, y: touch.clientY }
+      clearTouchTimer()
+      touchTimerRef.current = window.setTimeout(() => {
+        const point = touchPointRef.current
+        if (!point) {
+          return
+        }
+        openContextMenuAt(point.x, point.y)
+        clearTouchTimer()
+      }, 550)
     },
-    [viewer.selectedMeshName],
+    [clearTouchTimer, openContextMenuAt],
   )
+
+  const handleViewerTouchMove = useCallback(
+    (event: TouchEvent<HTMLElement>) => {
+      if (!touchPointRef.current) {
+        return
+      }
+      const touch = event.touches[0]
+      const dx = touch.clientX - touchPointRef.current.x
+      const dy = touch.clientY - touchPointRef.current.y
+      if (Math.hypot(dx, dy) > 15) {
+        clearTouchTimer()
+      }
+    },
+    [clearTouchTimer],
+  )
+
+  const handleViewerTouchEnd = useCallback(() => {
+    clearTouchTimer()
+    touchPointRef.current = null
+  }, [clearTouchTimer])
 
   useEffect(() => {
     if (!contextMenu) {
       return
     }
-    const handleClose = () => setContextMenu(null)
-    window.addEventListener('click', handleClose)
-    window.addEventListener('resize', handleClose)
+    const handlePointerDown = (event: PointerEvent) => {
+      if (event.button !== 0 && event.pointerType !== 'touch') {
+        return
+      }
+      setContextMenu(null)
+    }
+    const handleResize = () => setContextMenu(null)
+    window.addEventListener('pointerdown', handlePointerDown)
+    window.addEventListener('resize', handleResize)
     return () => {
-      window.removeEventListener('click', handleClose)
-      window.removeEventListener('resize', handleClose)
+      window.removeEventListener('pointerdown', handlePointerDown)
+      window.removeEventListener('resize', handleResize)
     }
   }, [contextMenu])
 
   useEffect(() => {
-    if (!viewer.selectedMeshName) {
+    return () => {
+      clearTouchTimer()
+    }
+  }, [clearTouchTimer])
+
+  useEffect(() => {
+    if (!selectedMeshName) {
       setContextMenu(null)
     }
-  }, [viewer.selectedMeshName])
+  }, [selectedMeshName])
 
   const handleExtinguishSelection = () => {
     viewer.extinguishSelection()
@@ -112,6 +192,9 @@ function App() {
         isPanelOpen={isPanelOpen}
         panelId={panelId}
         onContextMenu={handleViewerContextMenu}
+        onTouchStart={handleViewerTouchStart}
+        onTouchMove={handleViewerTouchMove}
+        onTouchEnd={handleViewerTouchEnd}
         onDragEnter={viewer.handleDragEnter}
         onDragLeave={viewer.handleDragLeave}
         onDragOver={viewer.handleDragOver}
@@ -139,6 +222,8 @@ function App() {
             x={contextMenu.x}
             y={contextMenu.y}
             onExtinguish={handleExtinguishSelection}
+            onChangeColor={(hex) => viewer.applyColorToSelectionWithValue(hex)}
+            currentColor={viewer.selectionColor}
           />
         )}
       </ViewerSurface>

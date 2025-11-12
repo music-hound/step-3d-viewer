@@ -3,6 +3,7 @@ import type {
   MouseEventHandler,
   MutableRefObject,
   ReactNode,
+  TouchEventHandler,
 } from 'react'
 
 interface ViewerSurfaceProps {
@@ -13,6 +14,9 @@ interface ViewerSurfaceProps {
   isPanelOpen: boolean
   panelId: string
   onContextMenu: MouseEventHandler<HTMLElement>
+  onTouchStart?: TouchEventHandler<HTMLElement>
+  onTouchMove?: TouchEventHandler<HTMLElement>
+  onTouchEnd?: TouchEventHandler<HTMLElement>
   onDragEnter: DragEventHandler<HTMLDivElement>
   onDragLeave: DragEventHandler<HTMLDivElement>
   onDragOver: DragEventHandler<HTMLDivElement>
@@ -29,6 +33,9 @@ export function ViewerSurface({
   isPanelOpen,
   panelId,
   onContextMenu,
+  onTouchStart,
+  onTouchMove,
+  onTouchEnd,
   onDragEnter,
   onDragLeave,
   onDragOver,
@@ -40,6 +47,9 @@ export function ViewerSurface({
     <section
       className={`viewer ${isDragActive ? 'viewer--active' : ''}`}
       onContextMenu={onContextMenu}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
       onDragEnter={onDragEnter}
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
