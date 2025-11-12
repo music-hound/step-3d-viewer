@@ -3,6 +3,10 @@ import react from '@vitejs/plugin-react'
 import fs from 'node:fs'
 import path from 'node:path'
 
+const repositoryBase = '/step-3d-viewer/'
+const isGhBuild = process.env.BUILD_TARGET === 'gh-pages'
+const basePath = isGhBuild ? repositoryBase : '/'
+
 const MODELS_DIR = path.resolve(process.cwd(), 'public/models')
 
 const ensureModelsDir = () => {
@@ -18,7 +22,7 @@ const readModels = () => {
     .filter((entry) => entry.isFile() && /\.(stp|step)$/i.test(entry.name))
     .map((entry) => ({
       fileName: entry.name,
-      url: `/models/${entry.name}`,
+      url: `${basePath}models/${entry.name}`,
     }))
 }
 
@@ -71,5 +75,6 @@ const sampleModelsPlugin = () => {
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: basePath,
   plugins: [react(), sampleModelsPlugin()],
 })
