@@ -80,7 +80,7 @@
   color: rgba(255, 255, 255, 0.7);
 }
 
-.color-input input[type='color'] {
+.color-input input[type="color"] {
   width: 48px;
   height: 32px;
   border: none;
@@ -104,6 +104,72 @@
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
+}
+
+.color-palette {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem 1.1rem;
+  border-radius: 18px;
+  background: rgba(12, 15, 26, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.color-palette__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.color-palette__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.color-swatch {
+  flex: 1 1 calc(50% - 0.5rem);
+  min-width: 110px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0.6rem 0.85rem;
+  color: #08111d;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.color-swatch:hover {
+  border-color: rgba(255, 255, 255, 0.45);
+  transform: translateY(-1px);
+}
+
+.color-swatch__value {
+  font-size: 0.72rem;
+}
+
+.color-swatch__remove {
+  font-size: 1rem;
+  opacity: 0.7;
+  line-height: 1;
+}
+
+.color-swatch__remove:hover {
+  opacity: 1;
+}
+
+.color-palette__empty {
+  margin: 0;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.65);
 }
 
 .scene-state-actions {
@@ -178,37 +244,37 @@
   cursor: pointer;
 }
 
-.file-input[data-disabled='true'] {
+.file-input[data-disabled="true"] {
   opacity: 0.45;
   cursor: not-allowed;
 }
 
-.file-input[data-disabled='true'] input {
+.file-input[data-disabled="true"] input {
   cursor: not-allowed;
 }
 
-.file-input[data-disabled='true'] span {
+.file-input[data-disabled="true"] span {
   pointer-events: none;
 }
 
-.controls button.secondary {
+/* .controls button.secondary {
   padding: 0.85rem 1.6rem;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 1);
-  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: transparent;
   color: #fff;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease;
+  transition: border-color 0.2s ease, color 0.2s ease;
   width: 100%;
-}
+} */
 
 .controls button.secondary:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.12);
   border-color: rgba(255, 255, 255, 0.4);
 }
 
-.ghost {
+.ghost, .secondary {
   padding: 0.8rem 1.4rem;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.15);

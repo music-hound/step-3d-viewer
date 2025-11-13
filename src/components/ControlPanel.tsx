@@ -15,6 +15,11 @@ interface ControlPanelProps {
   selectedMeshName: string | null
   onApplyColor: () => void
   onResetColor: () => void
+  colorPalette: string[]
+  onSelectPaletteColor: (color: string) => void
+  onAddPaletteColor: () => void
+  onRemovePaletteColor: (color: string) => void
+  canAddPaletteColor: boolean
   onSaveSceneState: () => void
   onLoadSceneState: (file: File) => void
   sceneStateDisabled: boolean
@@ -36,6 +41,11 @@ export function ControlPanel({
   selectedMeshName,
   onApplyColor,
   onResetColor,
+  colorPalette,
+  onSelectPaletteColor,
+  onAddPaletteColor,
+  onRemovePaletteColor,
+  canAddPaletteColor,
   onSaveSceneState,
   onLoadSceneState,
   sceneStateDisabled,
@@ -66,10 +76,7 @@ export function ControlPanel({
       <div className="panel__header">
         <p className="eyebrow">WebAssembly + three.js</p>
         <h1>STEP 3D Viewer</h1>
-        <p className="subtitle">
-          Просмотр .step/.stp файлов прямо в браузере: загрузите свой файл или воспользуйтесь
-          готовым примером.
-        </p>
+        
       </div>
 
       <div className="controls">
@@ -110,11 +117,11 @@ export function ControlPanel({
           <div className="selection-actions">
             <button
               type="button"
-              className="secondary"
+              className="ghost"
               onClick={onApplyColor}
               disabled={!selectedMeshName}
             >
-              Применить цвет
+              Применить
             </button>
             <button
               type="button"
@@ -127,12 +134,53 @@ export function ControlPanel({
           </div>
         </div>
       </div>
+      <div className="color-palette">
+        <div className="color-palette__header">
+          <p className="section-label">Палитра</p>
+          <button
+            type="button"
+            className="ghost"
+            onClick={onAddPaletteColor}
+            disabled={!canAddPaletteColor}
+          >
+            Добавить цвет
+          </button>
+        </div>
+        <div className="color-palette__list">
+          {colorPalette.map((color) => (
+            <button
+              key={color}
+              type="button"
+              className="color-swatch"
+              aria-label={`Цвет ${color}`}
+              onClick={() => onSelectPaletteColor(color)}
+              style={{ background: color }}
+            >
+              <span className="color-swatch__value">{color.toUpperCase()}</span>
+              <span
+                className="color-swatch__remove"
+                role="button"
+                aria-label="Удалить цвет из палитры"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onRemovePaletteColor(color)
+                }}
+              >
+                ×
+              </span>
+            </button>
+          ))}
+          {colorPalette.length === 0 && (
+            <p className="color-palette__empty">Пока пусто — добавьте текущий цвет.</p>
+          )}
+        </div>
+      </div>
       <div className="scene-state-actions">
         <p className="section-label">Изменения</p>
         <div className="scene-state-actions__buttons">
           <button
             type="button"
-            className="secondary"
+            className="ghost"
             onClick={onSaveSceneState}
             disabled={sceneStateDisabled}
           >

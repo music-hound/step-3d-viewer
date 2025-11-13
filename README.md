@@ -69,4 +69,4 @@ public/
 
 ## License
 
-MIT — feel free to fork, use, and improve. Pull requests are welcome! If you spot a bug or want to suggest a feature, open an issue. 😄
+MIT — feel free to fork, use, and improve. Pull requests are welcome! If you spot a bug or want to suggest a feature, open an issue.

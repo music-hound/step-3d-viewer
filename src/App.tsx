@@ -33,6 +33,12 @@ function App() {
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
   const touchTimerRef = useRef<number | null>(null)
   const touchPointRef = useRef<{ x: number; y: number } | null>(null)
+  const [colorPalette, setColorPalette] = useState<string[]>([
+    '#ff920dff',
+    '#4c6dffff',
+    '#8bc34aff',
+    '#ff0000ff',
+  ])
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width: 768px)')
@@ -81,6 +87,11 @@ function App() {
   )
 
   const panelId = 'control-panel'
+  const normalizedSelectionColor = viewer.selectionColor.toLowerCase()
+  const canAddPaletteColor = useMemo(
+    () => !colorPalette.includes(normalizedSelectionColor),
+    [colorPalette, normalizedSelectionColor],
+  )
 
   const handleSaveSceneState = useCallback(() => {
     const snapshot = serializeSceneState()
@@ -112,6 +123,31 @@ function App() {
       }
     },
     [applySceneState],
+  )
+
+  const handleSelectPaletteColor = useCallback(
+    (color: string) => {
+      viewer.setSelectionColor(color)
+    },
+    [viewer],
+  )
+
+  const handleAddPaletteColor = useCallback(() => {
+    setColorPalette((prev) =>
+      prev.includes(normalizedSelectionColor) ? prev : [...prev, normalizedSelectionColor],
+    )
+  }, [normalizedSelectionColor])
+
+  const handleRemovePaletteColor = useCallback((color: string) => {
+    setColorPalette((prev) => prev.filter((entry) => entry !== color))
+  }, [])
+
+  const handleApplyPaletteColor = useCallback(
+    (color: string) => {
+      viewer.applyColorToSelectionWithValue(color)
+      setContextMenu(null)
+    },
+    [viewer],
   )
 
   const clearTouchTimer = useCallback(() => {
@@ -252,6 +288,11 @@ function App() {
           selectedMeshName={viewer.selectedMeshName}
           onApplyColor={viewer.applyColorToSelection}
           onResetColor={viewer.resetSelectionColor}
+          colorPalette={colorPalette}
+          onSelectPaletteColor={handleSelectPaletteColor}
+          onAddPaletteColor={handleAddPaletteColor}
+          onRemovePaletteColor={handleRemovePaletteColor}
+          canAddPaletteColor={canAddPaletteColor}
           onSaveSceneState={handleSaveSceneState}
           onLoadSceneState={handleLoadSceneState}
           sceneStateDisabled={!hasModel}
@@ -265,6 +306,9 @@ function App() {
             onExtinguish={handleExtinguishSelection}
             onChangeColor={(hex) => viewer.applyColorToSelectionWithValue(hex)}
             currentColor={viewer.selectionColor}
+            palette={colorPalette}
+            onPaletteColorSelect={handleApplyPaletteColor}
+            canApplyColor={Boolean(viewer.selectedMeshName)}
           />
         )}
       </ViewerSurface>

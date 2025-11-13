@@ -6,9 +6,21 @@ interface ContextMenuProps {
   onExtinguish: () => void
   onChangeColor: (hex: string) => void
   currentColor: string
+  palette: string[]
+  onPaletteColorSelect: (color: string) => void
+  canApplyColor: boolean
 }
 
-export function ContextMenu({ x, y, onExtinguish, onChangeColor, currentColor }: ContextMenuProps) {
+export function ContextMenu({
+  x,
+  y,
+  onExtinguish,
+  onChangeColor,
+  currentColor,
+  palette,
+  onPaletteColorSelect,
+  canApplyColor,
+}: ContextMenuProps) {
   const stopPropagation = (event: MouseEvent<HTMLDivElement> | PointerEvent<HTMLDivElement>) => {
     event.stopPropagation()
   }
@@ -30,6 +42,26 @@ export function ContextMenu({ x, y, onExtinguish, onChangeColor, currentColor }:
           onChange={(event) => onChangeColor(event.target.value)}
         />
       </div>
+      {palette.length > 0 && (
+        <div className="context-menu__palette">
+          <p className="context-menu__label">Палитра</p>
+          <div className="context-menu__swatches">
+            {palette.map((color) => (
+              <button
+                key={color}
+                type="button"
+                className="context-menu__swatch"
+                style={{ background: color }}
+                onClick={() => onPaletteColorSelect(color)}
+                disabled={!canApplyColor}
+                aria-label={`Применить цвет ${color}`}
+              >
+                {color.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       <button type="button" role="menuitem" onClick={onExtinguish}>
         Погасить выделенное тело
       </button>
