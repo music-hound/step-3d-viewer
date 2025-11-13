@@ -1,4 +1,4 @@
-const CACHE_NAME = 'step-viewer-cache-v1'
+const CACHE_NAME = 'step-viewer-cache-v2'
 const PRECACHE_URLS = ['index.html', 'fav.png', 'manifest.webmanifest'].map((asset) =>
   new URL(asset, self.registration.scope).toString(),
 )
