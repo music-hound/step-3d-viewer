@@ -11,6 +11,18 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { getOcctImporter, triangulationSettings } from '../lib/occt'
 import type { StepImportResult } from 'occt-import-js'
 
+interface MeshStateEntry {
+  name: string
+  color: string
+  visible: boolean
+}
+
+export interface SceneStateSnapshot {
+  version: 1
+  generatedAt: string
+  meshes: MeshStateEntry[]
+}
+
 const READY_MESSAGE =
   'Перетащите .step/.stp файл в область просмотра или воспользуйтесь панелью управления.'
 const INIT_MESSAGE = 'Загружаем движок OpenCascade...'
@@ -63,6 +75,16 @@ export function useStepViewer() {
       setSelectedMeshName(null)
     }
   }, [setSelectionColor])
+
+  const forEachMesh = useCallback((fn: (mesh: THREE.Mesh) => void) => {
+    const group = modelGroupRef.current
+    if (!group) return
+    group.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        fn(child)
+      }
+    })
+  }, [])
 
   const findMeshAtScreenPosition = useCallback((clientX: number, clientY: number) => {
     const renderer = rendererRef.current
@@ -357,6 +379,74 @@ export function useStepViewer() {
     return true
   }, [])
 
+  const serializeSceneState = useCallback((): SceneStateSnapshot | null => {
+    const entries: MeshStateEntry[] = []
+    forEachMesh((mesh) => {
+      if (!(mesh.material instanceof THREE.MeshStandardMaterial)) {
+        return
+      }
+      const colorHex =
+        typeof mesh.userData.paintColorHex === 'string'
+          ? mesh.userData.paintColorHex
+          : `#${mesh.material.color.getHexString()}`
+      entries.push({
+        name: mesh.name || '',
+        color: colorHex,
+        visible: mesh.visible,
+      })
+    })
+    if (!entries.length) {
+      return null
+    }
+    return {
+      version: 1,
+      generatedAt: new Date().toISOString(),
+      meshes: entries,
+    }
+  }, [forEachMesh])
+
+  const applySceneState = useCallback(
+    (snapshot: SceneStateSnapshot | null | undefined) => {
+      if (!snapshot || snapshot.version !== 1) {
+        return false
+      }
+      const meshBuckets = new Map<string, THREE.Mesh[]>()
+      const orderedList: THREE.Mesh[] = []
+      forEachMesh((mesh) => {
+        orderedList.push(mesh)
+        const key = mesh.name || '__noname__'
+        if (!meshBuckets.has(key)) {
+          meshBuckets.set(key, [])
+        }
+        meshBuckets.get(key)!.push(mesh)
+      })
+      if (!orderedList.length) {
+        return false
+      }
+      snapshot.meshes.forEach((entry, index) => {
+        const key = entry.name || '__noname__'
+        const bucket = meshBuckets.get(key)
+        let mesh: THREE.Mesh | undefined = bucket?.shift()
+        if (!mesh) {
+          mesh = orderedList[index]
+        }
+        if (!mesh || !(mesh.material instanceof THREE.MeshStandardMaterial)) {
+          return
+        }
+        const colorHex = entry.color || '#d5dde8'
+        mesh.material.color.set(colorHex)
+        mesh.material.needsUpdate = true
+        mesh.userData.paintColorHex = colorHex
+        mesh.visible = entry.visible !== false
+      })
+      if (!selectedMeshRef.current || !selectedMeshRef.current.visible) {
+        selectMesh(null)
+      }
+      return true
+    },
+    [forEachMesh, selectMesh],
+  )
+
   const extinguishSelection = useCallback(() => {
     const mesh = selectedMeshRef.current
     if (!mesh) {
@@ -501,5 +591,7 @@ export function useStepViewer() {
     resetSelectionColor,
     extinguishSelection,
     selectMeshAtScreenPosition,
+    serializeSceneState,
+    applySceneState,
   }
 }

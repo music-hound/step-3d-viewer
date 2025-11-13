@@ -1,4 +1,4 @@
-import type { ChangeEventHandler, ReactNode } from 'react'
+import { useRef, type ChangeEventHandler, type ChangeEvent, type ReactNode } from 'react'
 import type { SampleModel } from '../data/sampleModels'
 import { SampleLibrary } from './SampleLibrary'
 
@@ -15,6 +15,9 @@ interface ControlPanelProps {
   selectedMeshName: string | null
   onApplyColor: () => void
   onResetColor: () => void
+  onSaveSceneState: () => void
+  onLoadSceneState: (file: File) => void
+  sceneStateDisabled: boolean
   samples: SampleModel[]
   onSampleSelect: (sample: SampleModel) => void
   children?: ReactNode
@@ -33,10 +36,23 @@ export function ControlPanel({
   selectedMeshName,
   onApplyColor,
   onResetColor,
+  onSaveSceneState,
+  onLoadSceneState,
+  sceneStateDisabled,
   samples,
   onSampleSelect,
   children,
 }: ControlPanelProps) {
+  const sceneStateInputRef = useRef<HTMLInputElement | null>(null)
+
+  const handleSceneStateChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      onLoadSceneState(file)
+    }
+    event.target.value = ''
+  }
+
   return (
     <aside id="control-panel" className={className} aria-hidden={ariaHidden}>
       <button
@@ -110,6 +126,34 @@ export function ControlPanel({
             </button>
           </div>
         </div>
+      </div>
+      <div className="scene-state-actions">
+        <p className="section-label">Изменения</p>
+        <div className="scene-state-actions__buttons">
+          <button
+            type="button"
+            className="secondary"
+            onClick={onSaveSceneState}
+            disabled={sceneStateDisabled}
+          >
+            Сохранить
+          </button>
+          <button
+            type="button"
+            className="ghost"
+            onClick={() => sceneStateInputRef.current?.click()}
+            disabled={sceneStateDisabled}
+          >
+            Загрузить
+          </button>
+        </div>
+        <input
+          ref={sceneStateInputRef}
+          type="file"
+          accept="application/json"
+          onChange={handleSceneStateChange}
+          style={{ display: 'none' }}
+        />
       </div>
       {children}
     </aside>

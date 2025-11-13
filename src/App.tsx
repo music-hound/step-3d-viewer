@@ -21,7 +21,13 @@ import './styles/context-menu.css'
 
 function App() {
   const viewer = useStepViewer()
-  const { selectMeshAtScreenPosition, selectedMeshName } = viewer
+  const {
+    selectMeshAtScreenPosition,
+    selectedMeshName,
+    serializeSceneState,
+    applySceneState,
+    hasModel,
+  } = viewer
   const [isPanelOpen, setIsPanelOpen] = useState(false)
   const [isMobileLayout, setIsMobileLayout] = useState(false)
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
@@ -75,6 +81,38 @@ function App() {
   )
 
   const panelId = 'control-panel'
+
+  const handleSaveSceneState = useCallback(() => {
+    const snapshot = serializeSceneState()
+    if (!snapshot) {
+      alert('Нет модели для сохранения.')
+      return
+    }
+    const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = `step-viewer-state-${new Date().toISOString().replace(/[:.]/g, '-')}.json`
+    anchor.click()
+    URL.revokeObjectURL(url)
+  }, [serializeSceneState])
+
+  const handleLoadSceneState = useCallback(
+    async (file: File) => {
+      try {
+        const text = await file.text()
+        const snapshot = JSON.parse(text)
+        const applied = applySceneState(snapshot)
+        if (!applied) {
+          alert('Не удалось применить сохранённое состояние.')
+        }
+      } catch (error) {
+        console.error(error)
+        alert('Не удалось прочитать файл состояния.')
+      }
+    },
+    [applySceneState],
+  )
 
   const clearTouchTimer = useCallback(() => {
     if (touchTimerRef.current !== null) {
@@ -214,6 +252,9 @@ function App() {
           selectedMeshName={viewer.selectedMeshName}
           onApplyColor={viewer.applyColorToSelection}
           onResetColor={viewer.resetSelectionColor}
+          onSaveSceneState={handleSaveSceneState}
+          onLoadSceneState={handleLoadSceneState}
+          sceneStateDisabled={!hasModel}
           samples={sampleModels}
           onSampleSelect={(sample) => viewer.loadSample(sample.url, sample.label, sample.fileName)}
         />
