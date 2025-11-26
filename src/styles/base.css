@@ -28,3 +28,15 @@
   color: rgba(255, 255, 255, 0.7);
   margin: 0;
 }
+
+.app[data-theme='light'] {
+  color: #101b2d;
+}
+
+.app[data-theme='light'] .eyebrow {
+  color: rgba(15, 29, 51, 0.55);
+}
+
+.app[data-theme='light'] .subtitle {
+  color: rgba(15, 29, 51, 0.7);
+}

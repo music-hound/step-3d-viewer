@@ -142,10 +142,11 @@ export function useStepViewer() {
     }
 
     const scene = new THREE.Scene()
-    scene.background = new THREE.Color('#06070f')
+    scene.background = null
     sceneRef.current = scene
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
+    renderer.setClearColor(0x000000, 0)
     renderer.setPixelRatio(window.devicePixelRatio)
     rendererRef.current = renderer
 

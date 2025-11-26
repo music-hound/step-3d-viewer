@@ -107,6 +107,92 @@
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
+.theme-toggle {
+  position: fixed;
+  top: clamp(1rem, 2vw, 2.5rem);
+  right: clamp(1rem, 3vw, 3.5rem);
+  z-index: 6;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(9, 12, 26, 0.8);
+  color: #f2f4ff;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(14px);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.theme-toggle__icon {
+  font-size: 0.9rem;
+}
+
+.theme-toggle:hover,
+.panel-toggle:hover {
+  opacity: 0.9;
+}
+
+.theme-toggle:active,
+.panel-toggle:active {
+  transform: translateY(1px);
+}
+
+.app[data-theme='light'] .viewer {
+  background: radial-gradient(120% 90% at 50% -15%, #fefefe 0%, #dfe8f4 50%, #c7d7e8 100%);
+  border: 1px solid rgba(15, 29, 51, 0.08);
+}
+
+.app[data-theme='light'] .viewer--active {
+  box-shadow: inset 0 0 0 3px rgba(102, 139, 204, 0.35);
+}
+
+.app[data-theme='light'] .viewer__placeholder {
+  color: rgba(16, 27, 45, 0.85);
+}
+
+.app[data-theme='light'] .viewer__placeholder .muted {
+  color: rgba(16, 27, 45, 0.6);
+}
+
+.app[data-theme='light'] .viewer__drop-hint {
+  background: rgba(78, 150, 255, 0.12);
+  border-color: rgba(78, 150, 255, 0.45);
+  color: #23518c;
+}
+
+.app[data-theme='light'] .viewer__loading {
+  background: rgba(255, 255, 255, 0.85);
+  color: #1d2c44;
+}
+
+.app[data-theme='light'] .viewer__loading-spinner {
+  border-color: rgba(85, 120, 184, 0.3);
+  border-top-color: #1e8fe3;
+}
+
+.app[data-theme='light'] .panel-toggle,
+.app[data-theme='light'] .theme-toggle {
+  border: 1px solid rgba(15, 29, 51, 0.15);
+  background: rgba(255, 255, 255, 0.92);
+  color: #14243a;
+  box-shadow: 0 15px 35px rgba(17, 30, 49, 0.15);
+}
+
+.app[data-theme='light'] .theme-toggle__icon {
+  color: #f5a500;
+}
+
+.app[data-theme='light'] .panel-toggle:hover,
+.app[data-theme='light'] .theme-toggle:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.98);
+}
+
 @media (max-width: 768px) {
   .viewer {
     min-height: 100vh;
@@ -114,6 +200,11 @@
 
   .panel-toggle {
     left: 1rem;
+    top: 1rem;
+  }
+
+  .theme-toggle {
+    right: 1rem;
     top: 1rem;
   }
 }

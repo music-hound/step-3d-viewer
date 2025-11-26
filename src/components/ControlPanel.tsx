@@ -83,7 +83,7 @@ export function ControlPanel({
         <label className="file-input" data-disabled={controlsDisabled}>
           <input
             type="file"
-            accept=".step,.stp,model/step,application/step"
+            accept=".step,.stp,.STEP,.STP,model/step,application/step"
             onChange={onFileChange}
             disabled={controlsDisabled}
           />

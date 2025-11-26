@@ -11,6 +11,7 @@ import { useStepViewer } from './hooks/useStepViewer'
 import { ViewerSurface } from './components/ViewerSurface'
 import { ControlPanel } from './components/ControlPanel'
 import { ContextMenu } from './components/ContextMenu'
+import { ThemeToggle } from './components/ThemeToggle'
 import { sampleModels } from './data/sampleModels'
 import './styles/animations.css'
 import './styles/base.css'
@@ -18,6 +19,46 @@ import './styles/sample-library.css'
 import './styles/viewer.css'
 import './styles/control-panel.css'
 import './styles/context-menu.css'
+
+const normalizeHexColor = (value: string) => {
+  if (typeof value !== 'string') {
+    return value
+  }
+  const hex = value.trim().toLowerCase()
+  if (!hex.startsWith('#')) {
+    return hex
+  }
+  if (/^#[0-9a-f]{8}$/.test(hex)) {
+    return `#${hex.slice(1, 7)}`
+  }
+  if (/^#[0-9a-f]{6}$/.test(hex)) {
+    return hex
+  }
+  if (/^#[0-9a-f]{4}$/.test(hex)) {
+    return `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`
+  }
+  if (/^#[0-9a-f]{3}$/.test(hex)) {
+    return `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`
+  }
+  return hex
+}
+
+const DEFAULT_PALETTE = ['#ff920dff', '#4c6dffff', '#8bc34aff', '#ff0000ff'] as const
+const INITIAL_PALETTE = DEFAULT_PALETTE.map((color) => normalizeHexColor(color))
+const THEME_STORAGE_KEY = 'step-viewer-theme'
+type ThemeMode = 'dark' | 'light'
+
+const getPreferredTheme = (): ThemeMode => {
+  if (typeof window === 'undefined') {
+    return 'dark'
+  }
+  const stored = window.localStorage?.getItem(THEME_STORAGE_KEY)
+  if (stored === 'dark' || stored === 'light') {
+    return stored
+  }
+  const media = window.matchMedia?.('(prefers-color-scheme: light)')
+  return media?.matches ? 'light' : 'dark'
+}
 
 function App() {
   const viewer = useStepViewer()
@@ -33,12 +74,19 @@ function App() {
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
   const touchTimerRef = useRef<number | null>(null)
   const touchPointRef = useRef<{ x: number; y: number } | null>(null)
-  const [colorPalette, setColorPalette] = useState<string[]>([
-    '#ff920dff',
-    '#4c6dffff',
-    '#8bc34aff',
-    '#ff0000ff',
-  ])
+  const [colorPalette, setColorPalette] = useState<string[]>(INITIAL_PALETTE)
+  const [theme, setTheme] = useState<ThemeMode>(() => getPreferredTheme())
+
+  const toggleTheme = useCallback(() => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return
+    }
+    window.localStorage?.setItem(THEME_STORAGE_KEY, theme)
+  }, [theme])
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width: 768px)')
@@ -87,7 +135,10 @@ function App() {
   )
 
   const panelId = 'control-panel'
-  const normalizedSelectionColor = viewer.selectionColor.toLowerCase()
+  const normalizedSelectionColor = useMemo(
+    () => normalizeHexColor(viewer.selectionColor),
+    [viewer.selectionColor],
+  )
   const canAddPaletteColor = useMemo(
     () => !colorPalette.includes(normalizedSelectionColor),
     [colorPalette, normalizedSelectionColor],
@@ -127,7 +178,7 @@ function App() {
 
   const handleSelectPaletteColor = useCallback(
     (color: string) => {
-      viewer.setSelectionColor(color)
+      viewer.setSelectionColor(normalizeHexColor(color))
     },
     [viewer],
   )
@@ -144,7 +195,8 @@ function App() {
 
   const handleApplyPaletteColor = useCallback(
     (color: string) => {
-      viewer.applyColorToSelectionWithValue(color)
+      const hex = normalizeHexColor(color)
+      viewer.applyColorToSelectionWithValue(hex)
       setContextMenu(null)
     },
     [viewer],
@@ -257,7 +309,12 @@ function App() {
   }
 
   return (
-    <div className="app" data-panel-open={isPanelOpen} data-mobile-layout={isMobileLayout}>
+    <div
+      className="app"
+      data-panel-open={isPanelOpen}
+      data-mobile-layout={isMobileLayout}
+      data-theme={theme}
+    >
       <ViewerSurface
         canvasRef={viewer.canvasHostRef}
         hasModel={viewer.hasModel}
@@ -299,6 +356,7 @@ function App() {
           samples={sampleModels}
           onSampleSelect={(sample) => viewer.loadSample(sample.url, sample.label, sample.fileName)}
         />
+        <ThemeToggle theme={theme} onToggle={toggleTheme} />
         {contextMenu && (
           <ContextMenu
             x={contextMenu.x}
