@@ -9,11 +9,17 @@ import {
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { getOcctImporter, triangulationSettings } from '../lib/occt'
-import type { StepImportResult } from 'occt-import-js'
+import type { StepHierarchyNode, StepImportResult } from 'occt-import-js'
 
 interface MeshStateEntry {
   name: string
   color: string
+  visible: boolean
+}
+
+export interface MeshTreeNode {
+  id: string
+  label: string
   visible: boolean
 }
 
@@ -27,6 +33,67 @@ const READY_MESSAGE =
   'Перетащите .step/.stp файл в область просмотра или воспользуйтесь панелью управления.'
 const INIT_MESSAGE = 'Загружаем движок OpenCascade...'
 
+const decodeStepExtendedString = (value: string) => {
+  if (!value.includes('\\X')) {
+    return value
+  }
+  return value.replace(/\\X([0-9A-F])\\([^\\]*)\\X0\\/gi, (_, mode: string, content: string) => {
+    const normalizedMode = mode.toUpperCase()
+    let chunkSize = 4
+    if (normalizedMode === '4') {
+      chunkSize = 8
+    } else if (normalizedMode === '1') {
+      chunkSize = 2
+    }
+    const chars: string[] = []
+    for (let i = 0; i < content.length; i += chunkSize) {
+      const hexChunk = content.slice(i, i + chunkSize)
+      if (!hexChunk) continue
+      const codePoint = parseInt(hexChunk, 16)
+      if (!Number.isNaN(codePoint)) {
+        chars.push(String.fromCodePoint(codePoint))
+      }
+    }
+    return chars.join('')
+  })
+}
+
+const cleanStepName = (value?: string | null) => {
+  if (!value) {
+    return ''
+  }
+  const decoded = decodeStepExtendedString(value)
+  const trimmed = decoded.replace(/"/g, '').trim()
+  if (!trimmed) {
+    return ''
+  }
+  return trimmed
+}
+
+const buildMeshNameMap = (root?: StepHierarchyNode) => {
+  const meshNameMap = new Map<number, string>()
+  if (!root) {
+    return meshNameMap
+  }
+  const traverse = (node: StepHierarchyNode, parents: string[]) => {
+    const currentName = cleanStepName(node.name)
+    const path = currentName ? [...parents, currentName] : parents
+    if (Array.isArray(node.meshes)) {
+      node.meshes.forEach((meshIndex) => {
+        if (typeof meshIndex === 'number' && !meshNameMap.has(meshIndex)) {
+          const label = path[path.length - 1] || currentName
+          if (label) {
+            meshNameMap.set(meshIndex, label)
+          }
+        }
+      })
+    }
+    node.children?.forEach((child) => traverse(child, path))
+  }
+  traverse(root, [])
+  return meshNameMap
+}
+
 export function useStepViewer() {
   const canvasHostRef = useRef<HTMLDivElement | null>(null)
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null)
@@ -39,6 +106,7 @@ export function useStepViewer() {
   const raycasterRef = useRef(new THREE.Raycaster())
   const pointerVector = useRef(new THREE.Vector2())
   const selectedMeshRef = useRef<THREE.Mesh | null>(null)
+  const meshIndexRef = useRef<Map<string, THREE.Mesh>>(new Map())
   const gridRef = useRef<THREE.GridHelper | null>(null)
   const defaultGridY = -0.0001
 
@@ -50,6 +118,8 @@ export function useStepViewer() {
   const [occtReady, setOcctReady] = useState(false)
   const [selectionColor, setSelectionColor] = useState('#ffad0d')
   const [selectedMeshName, setSelectedMeshName] = useState<string | null>(null)
+  const [selectedMeshId, setSelectedMeshId] = useState<string | null>(null)
+  const [meshTree, setMeshTree] = useState<MeshTreeNode[]>([])
 
   const selectMesh = useCallback((mesh: THREE.Mesh | null) => {
     const previous = selectedMeshRef.current
@@ -67,12 +137,14 @@ export function useStepViewer() {
       mesh.material.emissive.setHex(0x2d3a7a)
       selectedMeshRef.current = mesh
       setSelectedMeshName(mesh.name || 'Без имени')
+      setSelectedMeshId(mesh.uuid)
       if (typeof mesh.userData.paintColorHex === 'string') {
         setSelectionColor(mesh.userData.paintColorHex)
       }
     } else {
       selectedMeshRef.current = null
       setSelectedMeshName(null)
+      setSelectedMeshId(null)
     }
   }, [setSelectionColor])
 
@@ -114,6 +186,34 @@ export function useStepViewer() {
       return Boolean(mesh)
     },
     [findMeshAtScreenPosition, selectMesh],
+  )
+
+  const rebuildMeshTree = useCallback(() => {
+    const group = modelGroupRef.current
+    if (!group) {
+      setMeshTree([])
+      return
+    }
+    const nodes: MeshTreeNode[] = []
+    group.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        nodes.push({
+          id: child.uuid,
+          label: child.name || `Тело ${nodes.length + 1}`,
+          visible: child.visible,
+        })
+      }
+    })
+    setMeshTree(nodes)
+  }, [])
+
+  const selectMeshById = useCallback(
+    (id: string) => {
+      const target = meshIndexRef.current.get(id)
+      selectMesh(target ?? null)
+      return Boolean(target)
+    },
+    [selectMesh],
   )
 
   useEffect(() => {
@@ -246,6 +346,8 @@ export function useStepViewer() {
       }
     })
     modelGroupRef.current = null
+    meshIndexRef.current.clear()
+    setMeshTree([])
     if (gridRef.current) {
       gridRef.current.visible = true
       gridRef.current.position.y = defaultGridY
@@ -289,6 +391,8 @@ export function useStepViewer() {
       disposeCurrentModel()
 
       const group = new THREE.Group()
+      meshIndexRef.current.clear()
+      const meshNameMap = buildMeshNameMap(result.root)
       result.meshes.forEach((meshDef, index) => {
         const geometry = new THREE.BufferGeometry()
         const positionArray = meshDef.attributes.position?.array ?? []
@@ -326,10 +430,14 @@ export function useStepViewer() {
         const colorHex = `#${baseColor.getHexString()}`
 
         const mesh = new THREE.Mesh(geometry, material)
-        mesh.name = meshDef.name ?? `Mesh-${index + 1}`
+        const fallbackName = `Тело ${index + 1}`
+        const mappedName = meshNameMap.get(index)
+        const meshName = mappedName || cleanStepName(meshDef.name) || fallbackName
+        mesh.name = meshName
         mesh.userData.originalColorHex = colorHex
         mesh.userData.paintColorHex = colorHex
         group.add(mesh)
+        meshIndexRef.current.set(mesh.uuid, mesh)
       })
 
       sceneRef.current.add(group)
@@ -341,8 +449,9 @@ export function useStepViewer() {
       }
 
       selectMesh(null)
+      rebuildMeshTree()
     },
-    [disposeCurrentModel, fitCameraToGroup, selectMesh],
+    [disposeCurrentModel, fitCameraToGroup, selectMesh, rebuildMeshTree],
   )
 
   const applyColorToSelection = useCallback(() => {
@@ -443,9 +552,10 @@ export function useStepViewer() {
       if (!selectedMeshRef.current || !selectedMeshRef.current.visible) {
         selectMesh(null)
       }
+      rebuildMeshTree()
       return true
     },
-    [forEachMesh, selectMesh],
+    [forEachMesh, selectMesh, rebuildMeshTree],
   )
 
   const extinguishSelection = useCallback(() => {
@@ -456,8 +566,9 @@ export function useStepViewer() {
     mesh.visible = false
     mesh.userData.extinguished = true
     selectMesh(null)
+    rebuildMeshTree()
     return true
-  }, [selectMesh])
+  }, [rebuildMeshTree, selectMesh])
 
   const loadFromBuffer = useCallback(
     async (buffer: ArrayBuffer, label: string) => {
@@ -587,12 +698,15 @@ export function useStepViewer() {
     selectionColor,
     setSelectionColor,
     selectedMeshName,
+    selectedMeshId,
     applyColorToSelection,
     applyColorToSelectionWithValue,
     resetSelectionColor,
     extinguishSelection,
     selectMeshAtScreenPosition,
+    selectMeshById,
     serializeSceneState,
     applySceneState,
+    meshTree,
   }
 }

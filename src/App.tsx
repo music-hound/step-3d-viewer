@@ -19,6 +19,7 @@ import './styles/sample-library.css'
 import './styles/viewer.css'
 import './styles/control-panel.css'
 import './styles/context-menu.css'
+import './styles/model-tree.css'
 
 const normalizeHexColor = (value: string) => {
   if (typeof value !== 'string') {
@@ -355,6 +356,9 @@ function App() {
           sceneStateDisabled={!hasModel}
           samples={sampleModels}
           onSampleSelect={(sample) => viewer.loadSample(sample.url, sample.label, sample.fileName)}
+          modelTree={viewer.meshTree}
+          selectedMeshId={viewer.selectedMeshId}
+          onSelectTreeNode={(id) => viewer.selectMeshById(id)}
         />
         <ThemeToggle theme={theme} onToggle={toggleTheme} />
         {contextMenu && (

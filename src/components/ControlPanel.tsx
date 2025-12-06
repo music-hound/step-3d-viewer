@@ -1,6 +1,8 @@
 import { useRef, type ChangeEventHandler, type ChangeEvent, type ReactNode } from 'react'
 import type { SampleModel } from '../data/sampleModels'
+import type { MeshTreeNode } from '../hooks/useStepViewer'
 import { SampleLibrary } from './SampleLibrary'
+import { ModelTree } from './ModelTree'
 
 interface ControlPanelProps {
   className: string
@@ -25,6 +27,9 @@ interface ControlPanelProps {
   sceneStateDisabled: boolean
   samples: SampleModel[]
   onSampleSelect: (sample: SampleModel) => void
+  modelTree: MeshTreeNode[]
+  selectedMeshId: string | null
+  onSelectTreeNode: (id: string) => void
   children?: ReactNode
 }
 
@@ -51,6 +56,9 @@ export function ControlPanel({
   sceneStateDisabled,
   samples,
   onSampleSelect,
+  modelTree,
+  selectedMeshId,
+  onSelectTreeNode,
   children,
 }: ControlPanelProps) {
   const sceneStateInputRef = useRef<HTMLInputElement | null>(null)
@@ -97,6 +105,12 @@ export function ControlPanel({
         disabled={controlsDisabled}
         onSelect={onSampleSelect}
       />
+      <ModelTree
+        nodes={modelTree}
+        selectedId={selectedMeshId}
+        onSelect={onSelectTreeNode}
+        disabled={isLoading}
+      />
 
       {error && <div className="error-banner">{error}</div>}
       <div className="color-controls">
@@ -117,11 +131,11 @@ export function ControlPanel({
           <div className="selection-actions">
             <button
               type="button"
-              className="ghost"
+              className="primary"
               onClick={onApplyColor}
               disabled={!selectedMeshName}
             >
-              Применить
+              Применить цвет
             </button>
             <button
               type="button"

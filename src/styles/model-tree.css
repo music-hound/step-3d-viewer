@@ -1,0 +1,112 @@
+.model-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1rem 1.1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(8, 10, 20, 0.7);
+}
+
+.model-tree__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.model-tree__count {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.model-tree__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.model-tree__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 0.55rem 0.75rem;
+  background: rgba(255, 255, 255, 0.02);
+  color: #f4f6ff;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.model-tree__item[data-selected="true"] {
+  border-color: rgba(124, 168, 255, 0.55);
+  background: rgba(124, 168, 255, 0.12);
+}
+
+.model-tree__item:hover:not(:disabled) {
+  border-color: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.model-tree__item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.model-tree__item-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  flex: 1;
+}
+
+.model-tree__item-muted {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.55);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.model-tree__empty {
+  margin: 0;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.app[data-theme='light'] .model-tree {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(15, 29, 51, 0.08);
+}
+
+.app[data-theme='light'] .model-tree__count {
+  color: rgba(15, 29, 51, 0.65);
+}
+
+.app[data-theme='light'] .model-tree__item {
+  border: 1px solid rgba(15, 29, 51, 0.12);
+  background: rgba(15, 29, 51, 0.02);
+  color: #0f1d33;
+}
+
+.app[data-theme='light'] .model-tree__item[data-selected="true"] {
+  border-color: rgba(69, 112, 190, 0.6);
+  background: rgba(69, 112, 190, 0.12);
+}
+
+.app[data-theme='light'] .model-tree__item:hover:not(:disabled) {
+  border-color: rgba(15, 29, 51, 0.35);
+  background: rgba(15, 29, 51, 0.08);
+}
+
+.app[data-theme='light'] .model-tree__item-muted {
+  color: rgba(15, 29, 51, 0.55);
+}
+
+.app[data-theme='light'] .model-tree__empty {
+  color: rgba(15, 29, 51, 0.65);
+}
