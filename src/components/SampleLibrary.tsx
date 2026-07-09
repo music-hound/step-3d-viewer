@@ -8,15 +8,15 @@ interface SampleLibraryProps {
 
 export function SampleLibrary({ samples, disabled, onSelect }: SampleLibraryProps) {
   return (
-    <section className="sample-library" aria-label="Библиотека примеров">
+    <section className="sample-library" aria-label="Sample library">
       <div className="sample-library__header">
-        <p className="section-label">Библиотека примеров</p>
+        <p className="section-label">Sample Library</p>
         <span className="sample-library__count">{samples.length}</span>
       </div>
       <div className="sample-library__list">
         {samples.length === 0 && (
           <span className="sample-library__empty">
-            Добавьте .step/.stp файлы в папку <code>public/models</code>
+            Add .step/.stp files to the <code>public/models</code> folder
           </span>
         )}
         {samples.map((sample) => (
@@ -26,7 +26,7 @@ export function SampleLibrary({ samples, disabled, onSelect }: SampleLibraryProp
             className="sample-card"
             onClick={() => onSelect(sample)}
             disabled={disabled}
-            title={`Открыть ${sample.fileName}`}
+            title={`Open ${sample.fileName}`}
           >
             <span className="sample-card__label">{sample.label}</span>
             <span className="sample-card__meta">{sample.fileName}</span>

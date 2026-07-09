@@ -30,8 +30,8 @@ export interface SceneStateSnapshot {
 }
 
 const READY_MESSAGE =
-  'Перетащите .step/.stp файл в область просмотра или воспользуйтесь панелью управления.'
-const INIT_MESSAGE = 'Загружаем движок OpenCascade...'
+  'Drag a .step/.stp file into the viewer area, or use the control panel.'
+const INIT_MESSAGE = 'Loading OpenCascade engine...'
 
 const decodeStepExtendedString = (value: string) => {
   if (!value.includes('\\X')) {
@@ -136,7 +136,7 @@ export function useStepViewer() {
       }
       mesh.material.emissive.setHex(0x2d3a7a)
       selectedMeshRef.current = mesh
-      setSelectedMeshName(mesh.name || 'Без имени')
+      setSelectedMeshName(mesh.name || 'Unnamed')
       setSelectedMeshId(mesh.uuid)
       if (typeof mesh.userData.paintColorHex === 'string') {
         setSelectionColor(mesh.userData.paintColorHex)
@@ -199,7 +199,7 @@ export function useStepViewer() {
       if (child instanceof THREE.Mesh) {
         nodes.push({
           id: child.uuid,
-          label: child.name || `Тело ${nodes.length + 1}`,
+          label: child.name || `Body ${nodes.length + 1}`,
           visible: child.visible,
         })
       }
@@ -227,8 +227,8 @@ export function useStepViewer() {
       .catch((initError) => {
         console.error(initError)
         if (!mounted) return
-        setError('Не удалось загрузить движок OpenCascade')
-        setStatus('Попробуйте обновить страницу')
+        setError('Failed to load the OpenCascade engine')
+        setStatus('Please refresh the page')
       })
 
     return () => {
@@ -430,7 +430,7 @@ export function useStepViewer() {
         const colorHex = `#${baseColor.getHexString()}`
 
         const mesh = new THREE.Mesh(geometry, material)
-        const fallbackName = `Тело ${index + 1}`
+        const fallbackName = `Body ${index + 1}`
         const mappedName = meshNameMap.get(index)
         const meshName = mappedName || cleanStepName(meshDef.name) || fallbackName
         mesh.name = meshName
@@ -574,7 +574,7 @@ export function useStepViewer() {
     async (buffer: ArrayBuffer, label: string) => {
       setIsLoading(true)
       setError(null)
-      setStatus(`Импортируем ${label}...`)
+      setStatus(`Importing ${label}...`)
 
       try {
         const occt = await getOcctImporter()
@@ -582,11 +582,11 @@ export function useStepViewer() {
         const result = occt.ReadStepFile(fileBuffer, triangulationSettings)
 
         if (!result?.success || !result.meshes?.length) {
-          throw new Error('OCCT вернул пустой результат')
+          throw new Error('OCCT returned an empty result')
         }
 
         applyModelToScene(result)
-        setStatus(`Готово: ${label} (${result.meshes.length} объектов)`)
+        setStatus(`Done: ${label} (${result.meshes.length} objects)`)
       } catch (loadError) {
         console.error(loadError)
         setHasModel(false)
@@ -597,9 +597,9 @@ export function useStepViewer() {
         const message =
           loadError instanceof Error
             ? loadError.message
-            : 'Неизвестная ошибка при импорте файла'
+            : 'Unknown error importing the file'
         setError(message)
-        setStatus('Импорт не удался')
+        setStatus('Import failed')
       } finally {
         setIsLoading(false)
       }
@@ -627,22 +627,22 @@ export function useStepViewer() {
   )
 
   const loadSample = useCallback(
-    async (sampleUrl: string, label = 'пример', fileNameLabel?: string) => {
-      setStatus(`Загружаем ${label}...`)
+    async (sampleUrl: string, label = 'sample', fileNameLabel?: string) => {
+      setStatus(`Loading ${label}...`)
       setError(null)
       try {
         const response = await fetch(sampleUrl)
         if (!response.ok) {
-          throw new Error('Не удалось получить пример')
+          throw new Error('Failed to fetch sample')
         }
         const buffer = await response.arrayBuffer()
         await loadFromBuffer(buffer, fileNameLabel ?? `${label}.step`)
       } catch (sampleError) {
         console.error(sampleError)
         setError(
-          sampleError instanceof Error ? sampleError.message : 'Ошибка загрузки примера',
+          sampleError instanceof Error ? sampleError.message : 'Sample load error',
         )
-        setStatus('Попробуйте другой файл')
+        setStatus('Try another file')
       }
     },
     [loadFromBuffer],

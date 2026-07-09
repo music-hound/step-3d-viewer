@@ -58,15 +58,15 @@ export function ViewerSurface({
       <div ref={canvasRef} className="viewer__canvas" />
       {!hasModel && (
         <div className="viewer__placeholder">
-          <p>Сюда можно перетащить .step/.stp файл.</p>
-          <p className="muted">Либо воспользуйтесь панелью управления.</p>
+          <p>Drag a .step/.stp file here.</p>
+          <p className="muted">Or use the control panel.</p>
         </div>
       )}
-      {isDragActive && <div className="viewer__drop-hint">Отпустите файл, чтобы начать импорт</div>}
+      {isDragActive && <div className="viewer__drop-hint">Release to import the file</div>}
       {isLoading && (
         <div className="viewer__loading" aria-live="polite">
           <div className="viewer__loading-spinner" />
-          <p>Импортируем модель...</p>
+          <p>Importing model...</p>
         </div>
       )}
 
@@ -78,7 +78,7 @@ export function ViewerSurface({
           aria-controls={panelId}
           onClick={onTogglePanel}
         >
-          Меню
+          Menu
         </button>
       )}
 

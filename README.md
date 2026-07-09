@@ -20,7 +20,7 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:5173` — on desktop the control panel is hidden by default, click the “Меню” button to reveal it.
+Open `http://localhost:5173` — on desktop the control panel is hidden by default, click the “Menu” button to reveal it.
 
 ## Adding Your Own Models
 

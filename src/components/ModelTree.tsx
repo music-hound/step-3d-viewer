@@ -11,7 +11,7 @@ export function ModelTree({ nodes, selectedId, onSelect, disabled }: ModelTreePr
   return (
     <div className="model-tree">
       <div className="model-tree__header">
-        <p className="section-label">Дерево модели</p>
+        <p className="section-label">Model Tree</p>
         <span className="model-tree__count">{nodes.length}</span>
       </div>
       <div className="model-tree__list" role="tree">
@@ -27,11 +27,11 @@ export function ModelTree({ nodes, selectedId, onSelect, disabled }: ModelTreePr
             aria-selected={node.id === selectedId}
           >
             <span className="model-tree__item-label">{node.label}</span>
-            {!node.visible && <span className="model-tree__item-muted">скрыто</span>}
+            {!node.visible && <span className="model-tree__item-muted">hidden</span>}
           </button>
         ))}
         {!nodes.length && (
-          <p className="model-tree__empty">Загрузите модель, чтобы увидеть список тел.</p>
+          <p className="model-tree__empty">Load a model to see the body list.</p>
         )}
       </div>
     </div>

@@ -148,7 +148,7 @@ function App() {
   const handleSaveSceneState = useCallback(() => {
     const snapshot = serializeSceneState()
     if (!snapshot) {
-      alert('Нет модели для сохранения.')
+      alert('No model available to save.')
       return
     }
     const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' })
@@ -167,11 +167,11 @@ function App() {
         const snapshot = JSON.parse(text)
         const applied = applySceneState(snapshot)
         if (!applied) {
-          alert('Не удалось применить сохранённое состояние.')
+          alert('Failed to apply saved scene state.')
         }
       } catch (error) {
         console.error(error)
-        alert('Не удалось прочитать файл состояния.')
+        alert('Failed to read the scene state file.')
       }
     },
     [applySceneState],

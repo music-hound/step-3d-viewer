@@ -77,7 +77,7 @@ export function ControlPanel({
         type="button"
         className="panel-close"
         onClick={onHidePanel}
-        aria-label="Скрыть меню"
+        aria-label="Close panel"
       >
         <span aria-hidden="true">&larr;</span>
       </button>
@@ -95,7 +95,7 @@ export function ControlPanel({
             onChange={onFileChange}
             disabled={controlsDisabled}
           />
-          <span>Выбрать .step файл</span>
+          <span>Choose .step file</span>
         </label>
         {isLoading && <div className="loader" aria-live="polite" />}
       </div>
@@ -115,18 +115,18 @@ export function ControlPanel({
       {error && <div className="error-banner">{error}</div>}
       <div className="color-controls">
         <div className="color-input">
-          <label htmlFor="color-picker">Цвет</label>
+          <label htmlFor="color-picker">Color</label>
           <input
             id="color-picker"
             type="color"
             value={selectionColor}
             onChange={onSelectionColorChange}
-            aria-label="Выбор цвета для выделения"
+            aria-label="Select highlight color"
           />
         </div>
         <div className="selection-info">
           <span className="selection-label">
-            {selectedMeshName ? `Выбрано: ${selectedMeshName}` : 'Ничего не выбрано'}
+            {selectedMeshName ? `Selected: ${selectedMeshName}` : 'Nothing selected'}
           </span>
           <div className="selection-actions">
             <button
@@ -135,7 +135,7 @@ export function ControlPanel({
               onClick={onApplyColor}
               disabled={!selectedMeshName}
             >
-              Применить цвет
+              Apply color
             </button>
             <button
               type="button"
@@ -143,21 +143,21 @@ export function ControlPanel({
               onClick={onResetColor}
               disabled={!selectedMeshName}
             >
-              Сбросить
+              Reset
             </button>
           </div>
         </div>
       </div>
       <div className="color-palette">
         <div className="color-palette__header">
-          <p className="section-label">Палитра</p>
+          <p className="section-label">Palette</p>
           <button
             type="button"
             className="ghost"
             onClick={onAddPaletteColor}
             disabled={!canAddPaletteColor}
           >
-            Добавить цвет
+            Add color
           </button>
         </div>
         <div className="color-palette__list">
@@ -166,7 +166,7 @@ export function ControlPanel({
               key={color}
               type="button"
               className="color-swatch"
-              aria-label={`Цвет ${color}`}
+              aria-label={`Color ${color}`}
               onClick={() => onSelectPaletteColor(color)}
               style={{ background: color }}
             >
@@ -174,7 +174,7 @@ export function ControlPanel({
               <span
                 className="color-swatch__remove"
                 role="button"
-                aria-label="Удалить цвет из палитры"
+                aria-label="Remove color from palette"
                 onClick={(event) => {
                   event.stopPropagation()
                   onRemovePaletteColor(color)
@@ -185,12 +185,12 @@ export function ControlPanel({
             </button>
           ))}
           {colorPalette.length === 0 && (
-            <p className="color-palette__empty">Пока пусто — добавьте текущий цвет.</p>
+            <p className="color-palette__empty">No colors yet — add the current color.</p>
           )}
         </div>
       </div>
       <div className="scene-state-actions">
-        <p className="section-label">Изменения</p>
+        <p className="section-label">Scene state</p>
         <div className="scene-state-actions__buttons">
           <button
             type="button"
@@ -198,7 +198,7 @@ export function ControlPanel({
             onClick={onSaveSceneState}
             disabled={sceneStateDisabled}
           >
-            Сохранить
+            Save
           </button>
           <button
             type="button"
@@ -206,7 +206,7 @@ export function ControlPanel({
             onClick={() => sceneStateInputRef.current?.click()}
             disabled={sceneStateDisabled}
           >
-            Загрузить
+            Load
           </button>
         </div>
         <input

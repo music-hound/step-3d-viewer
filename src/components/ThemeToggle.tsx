@@ -4,18 +4,18 @@ interface ThemeToggleProps {
 }
 
 export function ThemeToggle({ theme, onToggle }: ThemeToggleProps) {
-  const nextThemeLabel = theme === 'light' ? 'тёмную' : 'светлую'
+  const nextThemeLabel = theme === 'light' ? 'dark' : 'light'
   return (
     <button
       type="button"
       className="theme-toggle"
       onClick={onToggle}
-      aria-label={`Переключить на ${nextThemeLabel} тему`}
+      aria-label={`Switch to ${nextThemeLabel} theme`}
     >
       <span className="theme-toggle__icon" aria-hidden="true">
         {theme === 'light' ? '☾' : '☀︎'}
       </span>
-      {theme === 'light' ? 'Тёмная' : 'Светлая'}
+      {theme === 'light' ? 'Dark' : 'Light'}
     </button>
   )
 }
